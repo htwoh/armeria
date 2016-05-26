@@ -1,0 +1,1170 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Annotated HTTP Service &mdash; Armeria 0.63.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Serving static files" href="server-http-file.html" />
+    <link rel="prev" title="Browsing and invoking services with DocService" href="server-docservice.html" />
+  <script src="_static/center_page.js"></script>
+   
+
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html">
+          
+
+          
+            
+            <img src="_static/armeria.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.63
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="setup.html">Setting up a project</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="server.html">Writing a server</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="server-basics.html">Server basics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server-decorator.html">Decorating a service</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server-grpc.html">Running a gRPC service</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server-thrift.html">Running a Thrift service</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server-docservice.html">Browsing and invoking services with <code class="docutils literal highlight highlight-default"><span></span><span class="n">DocService</span></code></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Annotated HTTP Service</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mapping-http-service-methods">Mapping HTTP service methods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameter-injection">Parameter injection</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#injecting-a-parameter-as-an-enum-type">Injecting a parameter as an <code class="docutils literal highlight highlight-default"><span></span><span class="n">Enum</span></code> type</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#getting-an-http-parameter">Getting an HTTP parameter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#getting-an-http-header">Getting an HTTP header</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#other-classes-automatically-injected">Other classes automatically injected</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#handling-exceptions">Handling exceptions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#conversion-between-an-http-message-and-a-java-object">Conversion between an HTTP message and a Java object</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#converting-an-http-request-to-a-java-object">Converting an HTTP request to a Java object</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#converting-a-java-object-to-an-http-response">Converting a Java object to an HTTP response</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#using-serverbuilder-to-configure-converters-and-exception-handlers">Using ServerBuilder to configure converters and exception handlers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#decorating-an-annotated-service">Decorating an annotated service</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#decorating-an-annotated-service-with-a-custom-decorator-annotation">Decorating an annotated service with a custom decorator annotation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#evaluation-order-of-decorators">Evaluation order of decorators</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#media-type-negotiation">Media type negotiation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="server-http-file.html">Serving static files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server-servlet.html">Embedding a servlet container</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server-access-log.html">Writing an access log</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="client.html">Writing a client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced.html">Advanced topics</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/line/armeria/releases">Release notes</a></li>
+<li class="toctree-l1"><a class="reference external" href="apidocs/index.html#://">API documentation</a></li>
+<li class="toctree-l1"><a class="reference external" href="xref/index.html#://">Source cross-reference</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/line/armeria/issues?q=label%3Aquestion-answered">Questions and answers</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/line/armeria">Fork me at GitHub</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/line/armeria/blob/master/CONTRIBUTING.md">Contributing</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Armeria</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="server.html">Writing a server</a> &raquo;</li>
+        
+      <li>Annotated HTTP Service</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            
+              <a href="https://github.com/line/armeria/blob/master/site/src/sphinx/server-annotated-service.rst" class="fa fa-github"> Edit on GitHub</a>
+            
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="annotated-http-service">
+<span id="server-annotated-service"></span><h1>Annotated HTTP Service<a class="headerlink" href="#annotated-http-service" title="Permalink to this headline">¶</a></h1>
+<p>Armeria provides a way to write an HTTP service using annotations. It helps a user make his or her code
+simple and easy to understand. A user is able to run an HTTP service by fewer lines of code using
+annotations as follows. <code class="docutils literal highlight highlight-default"><span></span><span class="n">hello</span><span class="p">()</span></code> method in the example would be mapped to the path of <code class="docutils literal highlight highlight-default"><span></span><span class="o">/</span><span class="n">hello</span><span class="o">/</span><span class="p">{</span><span class="n">name</span><span class="p">}</span></code>
+with an HTTP GET method.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="n">ServerBuilder</span> <span class="n">sb</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ServerBuilder</span><span class="o">();</span>
+<span class="n">sb</span><span class="o">.</span><span class="na">annotatedService</span><span class="o">(</span><span class="k">new</span> <span class="n">Object</span><span class="o">()</span> <span class="o">{</span>
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello/{name}&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello</span><span class="o">(</span><span class="nd">@Param</span><span class="o">(</span><span class="s">&quot;name&quot;</span><span class="o">)</span> <span class="n">String</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">HttpResponse</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">HttpStatus</span><span class="o">.</span><span class="na">OK</span><span class="o">,</span>
+                               <span class="n">MediaType</span><span class="o">.</span><span class="na">PLAIN_TEXT_UTF_8</span><span class="o">,</span>
+                               <span class="s">&quot;Hello, %s!&quot;</span><span class="o">,</span> <span class="n">name</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">});</span>
+</pre></div>
+</div>
+<div class="section" id="mapping-http-service-methods">
+<h2>Mapping HTTP service methods<a class="headerlink" href="#mapping-http-service-methods" title="Permalink to this headline">¶</a></h2>
+<p>To map a service method in an annotated HTTP service class to an HTTP path, it has to be annotated with one of
+HTTP method annotations. The following is the list of HTTP method annotations where each of them is mapped
+to an HTTP method.</p>
+<ul class="simple">
+<li><a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Get.html">&#64;Get</a></li>
+<li><a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Head.html">&#64;Head</a></li>
+<li><a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Post.html">&#64;Post</a></li>
+<li><a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Put.html">&#64;Put</a></li>
+<li><a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Delete.html">&#64;Delete</a></li>
+<li><a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Options.html">&#64;Options</a></li>
+<li><a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Patch.html">&#64;Patch</a></li>
+<li><a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Trace.html">&#64;Trace</a></li>
+</ul>
+<p>To handle an HTTP request with a service method, you can annotate your service method simply as follows.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello</span><span class="o">()</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>There are 5 <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/PathMapping.html">PathMapping</a> types provided for describing a path.</p>
+<ul class="simple">
+<li>Exact mapping, e.g. <code class="docutils literal highlight highlight-default"><span></span><span class="o">/</span><span class="n">hello</span></code> or <code class="docutils literal highlight highlight-default"><span></span><span class="n">exact</span><span class="p">:</span><span class="o">/</span><span class="n">hello</span></code><ul>
+<li>a service method will handle the path exactly matched with the specified path.</li>
+</ul>
+</li>
+<li>Mapping with path prefix, e.g. <code class="docutils literal highlight highlight-default"><span></span><span class="n">prefix</span><span class="p">:</span><span class="o">/</span><span class="n">hello</span></code><ul>
+<li>a service method will handle every path which starts with the specified prefix.</li>
+</ul>
+</li>
+<li>Mapping with path variables, e.g <code class="docutils literal highlight highlight-default"><span></span><span class="o">/</span><span class="n">hello</span><span class="o">/</span><span class="p">{</span><span class="n">name</span><span class="p">}</span></code> or <code class="docutils literal highlight highlight-default"><span></span><span class="o">/</span><span class="n">hello</span><span class="o">/</span><span class="p">:</span><span class="n">name</span></code><ul>
+<li>a service method will handle the path matched with the specified path pattern. A path variable in the
+specified pattern may be mapped to a parameter of the service method.</li>
+</ul>
+</li>
+<li>Mapping with regular expression, e.g. <code class="docutils literal highlight highlight-default"><span></span>regex:^/hello/(?&lt;name&gt;.*)$</code><ul>
+<li>a service method will handle the path matched with the specified regular expression. If a named capturing
+group exists in the regular expression, it may be mapped to a parameter of the service method.</li>
+</ul>
+</li>
+<li>Mapping with glob pattern, e.g. <code class="docutils literal highlight highlight-default"><span></span><span class="n">glob</span><span class="p">:</span><span class="o">/*/</span><span class="n">hello</span><span class="o">/**</span></code><ul>
+<li>a service method will handle the path matched with the specified glob pattern. Each wildcard is mapped to
+an index which starts with <code class="docutils literal highlight highlight-default"><span></span><span class="mi">0</span></code>, so it may be mapped to a parameter of the service method.</li>
+</ul>
+</li>
+</ul>
+<p>You can get the value of a path variable, a named capturing group of the regular expression or wildcards of
+the glob pattern in your service method by annotating a parameter with <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Param.html">&#64;Param</a> as follows.
+Please refer to <a class="reference internal" href="#parameter-injection"><span class="std std-ref">Parameter injection</span></a> for more information about <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Param.html">&#64;Param</a>.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello/{name}&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">pathvar</span><span class="o">(</span><span class="nd">@Param</span><span class="o">(</span><span class="s">&quot;name&quot;</span><span class="o">)</span> <span class="n">String</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;regex:^/hello/(?&lt;name&gt;.*)$&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">regex</span><span class="o">(</span><span class="nd">@Param</span><span class="o">(</span><span class="s">&quot;name&quot;</span><span class="o">)</span> <span class="n">String</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;glob:/*/hello/**&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">glob</span><span class="o">(</span><span class="nd">@Param</span><span class="o">(</span><span class="s">&quot;0&quot;</span><span class="o">)</span> <span class="n">String</span> <span class="n">prefix</span><span class="o">,</span> <span class="nd">@Param</span><span class="o">(</span><span class="s">&quot;1&quot;</span><span class="o">)</span> <span class="n">String</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Every service method in the examples so far had a single HTTP method annotation with it. What if you want
+to map more than one HTTP method to your service method? You can use <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Path.html">&#64;Path</a> annotation to specify a path
+and use the HTTP method annotations without a path to map multiple HTTP methods, e.g.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+    <span class="nd">@Get</span>
+    <span class="nd">@Post</span>
+    <span class="nd">@Put</span>
+    <span class="nd">@Delete</span>
+    <span class="nd">@Path</span><span class="o">(</span><span class="s">&quot;/hello&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello</span><span class="o">()</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="parameter-injection">
+<span id="id1"></span><h2>Parameter injection<a class="headerlink" href="#parameter-injection" title="Permalink to this headline">¶</a></h2>
+<p>Let’s see the example in the above section again.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello/{name}&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">pathvar</span><span class="o">(</span><span class="nd">@Param</span><span class="o">(</span><span class="s">&quot;name&quot;</span><span class="o">)</span> <span class="n">String</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;regex:^/hello/(?&lt;name&gt;.*)$&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">regex</span><span class="o">(</span><span class="nd">@Param</span><span class="o">(</span><span class="s">&quot;name&quot;</span><span class="o">)</span> <span class="n">String</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;glob:/*/hello/**&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">glob</span><span class="o">(</span><span class="nd">@Param</span><span class="o">(</span><span class="s">&quot;0&quot;</span><span class="o">)</span> <span class="n">String</span> <span class="n">prefix</span><span class="o">,</span> <span class="nd">@Param</span><span class="o">(</span><span class="s">&quot;1&quot;</span><span class="o">)</span> <span class="n">String</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>A value of a parameter <code class="docutils literal highlight highlight-default"><span></span><span class="n">name</span></code> is automatically injected as a <code class="docutils literal highlight highlight-default"><span></span><span class="n">String</span></code> by Armeria.
+Armeria will try to convert the value appropriately if the parameter type is not <code class="docutils literal highlight highlight-default"><span></span><span class="n">String</span></code>.
+<code class="docutils literal highlight highlight-default"><span></span><span class="n">IllegalArgumentException</span></code> will be raised if the conversion fails or the parameter type is not
+one of the following supported types:</p>
+<ul class="simple">
+<li><code class="docutils literal highlight highlight-default"><span></span><span class="n">boolean</span></code> or <code class="docutils literal highlight highlight-default"><span></span><span class="n">Boolean</span></code></li>
+<li><code class="docutils literal highlight highlight-default"><span></span><span class="n">byte</span></code> or <code class="docutils literal highlight highlight-default"><span></span><span class="n">Byte</span></code></li>
+<li><code class="docutils literal highlight highlight-default"><span></span><span class="n">short</span></code> or <code class="docutils literal highlight highlight-default"><span></span><span class="n">Short</span></code></li>
+<li><code class="docutils literal highlight highlight-default"><span></span><span class="n">integer</span></code> or <code class="docutils literal highlight highlight-default"><span></span><span class="n">Integer</span></code></li>
+<li><code class="docutils literal highlight highlight-default"><span></span><span class="n">long</span></code> or <code class="docutils literal highlight highlight-default"><span></span><span class="n">Long</span></code></li>
+<li><code class="docutils literal highlight highlight-default"><span></span><span class="nb">float</span></code> or <code class="docutils literal highlight highlight-default"><span></span><span class="n">Float</span></code></li>
+<li><code class="docutils literal highlight highlight-default"><span></span><span class="n">double</span></code> or <code class="docutils literal highlight highlight-default"><span></span><span class="n">Double</span></code></li>
+<li><code class="docutils literal highlight highlight-default"><span></span><span class="n">String</span></code></li>
+<li><code class="docutils literal highlight highlight-default"><span></span><span class="n">Enum</span></code></li>
+</ul>
+<p>Note that you can omit the value of <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Param.html">&#64;Param</a> if you compiled your code with <code class="docutils literal highlight highlight-default"><span></span><span class="o">-</span><span class="n">parameters</span></code> javac option.
+In this case the variable name is used as the value.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello/{name}&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello1</span><span class="o">(</span><span class="nd">@Param</span> <span class="n">String</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>You can configure your build tool to add <code class="docutils literal highlight highlight-default"><span></span><span class="o">-</span><span class="n">parameters</span></code> javac option as follows.</p>
+<div class="highlight-groovy notranslate"><div class="highlight"><pre><span></span><span class="c1">// Gradle:</span>
+<span class="n">tasks</span><span class="o">.</span><span class="na">withType</span><span class="o">(</span><span class="n">JavaCompile</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">options</span><span class="o">.</span><span class="na">compilerArgs</span> <span class="o">+=</span> <span class="s1">&#39;-parameters&#39;</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<div class="last highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="c">&lt;!-- Maven --&gt;</span>
+<span class="nt">&lt;project&gt;</span>
+  <span class="nt">&lt;build&gt;</span>
+    <span class="nt">&lt;pluigins&gt;</span>
+      <span class="nt">&lt;plugin&gt;</span>
+        <span class="nt">&lt;groupId&gt;</span>org.apache.maven.plugins<span class="nt">&lt;/groupId&gt;</span>
+        <span class="nt">&lt;artifactId&gt;</span>maven-compiler-plugin<span class="nt">&lt;/artifactId&gt;</span>
+        <span class="nt">&lt;configuration&gt;</span>
+          <span class="nt">&lt;compilerArgs&gt;</span>
+            <span class="nt">&lt;arg&gt;</span>-parameters<span class="nt">&lt;/arg&gt;</span>
+          <span class="nt">&lt;/compilerArgs&gt;</span>
+        <span class="nt">&lt;/configuration&gt;</span>
+      <span class="nt">&lt;/plugin&gt;</span>
+    <span class="nt">&lt;/plugins&gt;</span>
+  <span class="nt">&lt;/build&gt;</span>
+<span class="nt">&lt;/project&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="injecting-a-parameter-as-an-enum-type">
+<h3>Injecting a parameter as an <code class="docutils literal highlight highlight-default"><span></span><span class="n">Enum</span></code> type<a class="headerlink" href="#injecting-a-parameter-as-an-enum-type" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal highlight highlight-default"><span></span><span class="n">Enum</span></code> type is also automatically converted if you annotate a parameter of your service method with
+<a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Param.html">&#64;Param</a> annotation. If your <code class="docutils literal highlight highlight-default"><span></span><span class="n">Enum</span></code> type can be handled in a case-insensitive way, Armeria
+automatically converts the string value of a parameter to a value of <code class="docutils literal highlight highlight-default"><span></span><span class="n">Enum</span></code> in a case-insensitive way.
+Otherwise, case-sensitive exact match will be performed.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">enum</span> <span class="n">CaseInsensitive</span> <span class="o">{</span>
+    <span class="n">ALPHA</span><span class="o">,</span> <span class="n">BRAVO</span><span class="o">,</span> <span class="n">CHARLIE</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">enum</span> <span class="n">CaseSensitive</span> <span class="o">{</span>
+    <span class="n">ALPHA</span><span class="o">,</span> <span class="n">alpha</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello1/{there}&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello1</span><span class="o">(</span><span class="nd">@Param</span><span class="o">(</span><span class="s">&quot;there&quot;</span><span class="o">)</span> <span class="n">CaseInsensitive</span> <span class="n">there</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">// &#39;there&#39; is converted in a case-insensitive way.</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello2/{there}&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello2</span><span class="o">(</span><span class="nd">@Param</span><span class="o">(</span><span class="s">&quot;there&quot;</span><span class="o">)</span> <span class="n">CaseSensitive</span> <span class="n">there</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">// &#39;there&#39; must be converted in a case-sensitive way.</span>
+        <span class="c1">// So &#39;ALPHA&#39; and &#39;alpha&#39; are only acceptable.</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="getting-an-http-parameter">
+<h3>Getting an HTTP parameter<a class="headerlink" href="#getting-an-http-parameter" title="Permalink to this headline">¶</a></h3>
+<p>When the value of <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Param.html">&#64;Param</a> annotation is not shown in the path pattern, it will be handled as a parameter
+name of the query string of the request. If you have a service class like the example below and a user sends an
+HTTP GET request with URI of <code class="docutils literal highlight highlight-default"><span></span>/hello1?name=armeria</code>, the service method will get <code class="docutils literal highlight highlight-default"><span></span><span class="n">armeria</span></code> as the value
+of parameter <code class="docutils literal highlight highlight-default"><span></span><span class="n">name</span></code>. If there is no parameter named <code class="docutils literal highlight highlight-default"><span></span><span class="n">name</span></code> in the query string, the parameter <code class="docutils literal highlight highlight-default"><span></span><span class="n">name</span></code>
+of the method would be <code class="docutils literal highlight highlight-default"><span></span><span class="n">null</span></code>. If you want to avoid <code class="docutils literal highlight highlight-default"><span></span><span class="n">null</span></code> in this case, you can use <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Default.html">&#64;Default</a>
+annotation or <code class="docutils literal highlight highlight-default"><span></span>Optional&lt;?&gt;</code> class, e.g. <code class="docutils literal highlight highlight-default"><span></span><span class="n">hello2</span></code> and <code class="docutils literal highlight highlight-default"><span></span><span class="n">hello3</span></code> methods below, respectively.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello1&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello1</span><span class="o">(</span><span class="nd">@Param</span><span class="o">(</span><span class="s">&quot;name&quot;</span><span class="o">)</span> <span class="n">String</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello2&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello2</span><span class="o">(</span><span class="nd">@Param</span><span class="o">(</span><span class="s">&quot;name&quot;</span><span class="o">)</span> <span class="nd">@Default</span><span class="o">(</span><span class="s">&quot;armeria&quot;</span><span class="o">)</span> <span class="n">String</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello3&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello3</span><span class="o">(</span><span class="nd">@Param</span><span class="o">(</span><span class="s">&quot;name&quot;</span><span class="o">)</span> <span class="n">Optional</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">String</span> <span class="n">clientName</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="na">orElse</span><span class="o">(</span><span class="s">&quot;armeria&quot;</span><span class="o">);</span>
+        <span class="c1">// ...</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>If an HTTP POST request with a <code class="docutils literal highlight highlight-default"><span></span><span class="n">Content</span><span class="o">-</span><span class="n">Type</span><span class="p">:</span> <span class="n">x</span><span class="o">-</span><span class="n">www</span><span class="o">-</span><span class="n">form</span><span class="o">-</span><span class="n">urlencoded</span></code> is received and no <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Param.html">&#64;Param</a> value
+appears in the path pattern, Armeria will aggregate the received request and decode its body as a URL-encoded
+form. After that, Armeria will inject the decoded value into the parameter.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+    <span class="nd">@Post</span><span class="o">(</span><span class="s">&quot;/hello4&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello4</span><span class="o">(</span><span class="nd">@Param</span><span class="o">(</span><span class="s">&quot;name&quot;</span><span class="o">)</span> <span class="n">String</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">// &#39;x-www-form-urlencoded&#39; request will be aggregated. The other requests may get</span>
+        <span class="c1">// a &#39;400 Bad Request&#39; because there is no way to inject a mandatory parameter &#39;name&#39;.</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="getting-an-http-header">
+<span id="header-injection"></span><h3>Getting an HTTP header<a class="headerlink" href="#getting-an-http-header" title="Permalink to this headline">¶</a></h3>
+<p>Armeria also provides <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Header.html">&#64;Header</a> annotation to inject an HTTP header value into a parameter. The parameter
+annotated with <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Header.html">&#64;Header</a> can also be specified as one of the built-in types as follows. <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Default.html">&#64;Default</a> and
+<code class="docutils literal highlight highlight-default"><span></span>Optional&lt;?&gt;</code> are also supported.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello1&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello1</span><span class="o">(</span><span class="nd">@Header</span><span class="o">(</span><span class="s">&quot;Authorization&quot;</span><span class="o">)</span> <span class="n">String</span> <span class="n">auth</span><span class="o">)</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+
+    <span class="nd">@Post</span><span class="o">(</span><span class="s">&quot;/hello2&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello2</span><span class="o">(</span><span class="nd">@Header</span><span class="o">(</span><span class="s">&quot;Content-Length&quot;</span><span class="o">)</span> <span class="kt">long</span> <span class="n">contentLength</span><span class="o">)</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Note that you can omit the value of <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Header.html">&#64;Header</a>  if you compiled your code with <code class="docutils literal highlight highlight-default"><span></span><span class="o">-</span><span class="n">parameters</span></code> javac option.
+Read <a class="reference internal" href="#parameter-injection"><span class="std std-ref">Parameter injection</span></a> for more information.
+In this case the variable name is used as the value, but it will be converted to hyphen-separated lowercase
+string to be suitable for general HTTP header names. e.g. a variable name <code class="docutils literal highlight highlight-default"><span></span><span class="n">contentLength</span></code> or
+<code class="docutils literal highlight highlight-default"><span></span><span class="n">content_length</span></code> will be converted to <code class="docutils literal highlight highlight-default"><span></span><span class="n">content</span><span class="o">-</span><span class="n">length</span></code> as the value of <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Header.html">&#64;Header</a>.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+    <span class="nd">@Post</span><span class="o">(</span><span class="s">&quot;/hello2&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello2</span><span class="o">(</span><span class="nd">@Header</span> <span class="kt">long</span> <span class="n">contentLength</span><span class="o">)</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="other-classes-automatically-injected">
+<h3>Other classes automatically injected<a class="headerlink" href="#other-classes-automatically-injected" title="Permalink to this headline">¶</a></h3>
+<p>The following classes are automatically injected when you specify them on the parameter list of your method.</p>
+<ul class="simple">
+<li><a class="reference external" href="apidocs/index.html?com/linecorp/armeria/common/RequestContext.html">RequestContext</a></li>
+<li><a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/ServiceRequestContext.html">ServiceRequestContext</a></li>
+<li><a class="reference external" href="apidocs/index.html?com/linecorp/armeria/common/Request.html">Request</a></li>
+<li><a class="reference external" href="apidocs/index.html?com/linecorp/armeria/common/HttpRequest.html">HttpRequest</a></li>
+<li><a class="reference external" href="apidocs/index.html?com/linecorp/armeria/common/AggregatedHttpMessage.html">AggregatedHttpMessage</a></li>
+<li><a class="reference external" href="apidocs/index.html?com/linecorp/armeria/common/HttpParameters.html">HttpParameters</a></li>
+</ul>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello1&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello1</span><span class="o">(</span><span class="n">ServiceRequestContext</span> <span class="n">ctx</span><span class="o">,</span> <span class="n">HttpRequest</span> <span class="n">req</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">// Use the context and request inside a method.</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Post</span><span class="o">(</span><span class="s">&quot;/hello2&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello2</span><span class="o">(</span><span class="n">AggregatedHttpMessage</span> <span class="n">aggregatedMessage</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">// Armeria aggregates the received HttpRequest and calls this method with the aggregated request.</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello3&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello3</span><span class="o">(</span><span class="n">HttpParameters</span> <span class="n">httpParameters</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">// &#39;httpParameters&#39; holds the parameters parsed from a query string of a request.</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Post</span><span class="o">(</span><span class="s">&quot;/hello4&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello4</span><span class="o">(</span><span class="n">HttpParameters</span> <span class="n">httpParameters</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">// If a request has a url-encoded form as its body, it can be accessed via &#39;httpParameters&#39;.</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="handling-exceptions">
+<h2>Handling exceptions<a class="headerlink" href="#handling-exceptions" title="Permalink to this headline">¶</a></h2>
+<p>It is often useful to extract exception handling logic from service methods into a separate common class.
+Armeria provides <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/ExceptionHandler.html">&#64;ExceptionHandler</a> annotation to transform an exception into a response. You can write
+your own exception handler by implementing <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/ExceptionHandlerFunction.html">ExceptionHandlerFunction</a> interface and annotate your service
+object or method with <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/ExceptionHandler.html">&#64;ExceptionHandler</a> annotation. Here is an example of an exception handler.
+If your exception handler is not able to handle a given exception, you can call
+<code class="docutils literal highlight highlight-default"><span></span><span class="n">ExceptionHandlerFunction</span><span class="o">.</span><span class="n">fallthrough</span><span class="p">()</span></code> to pass the exception to the next exception handler.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyExceptionHandler</span> <span class="kd">implements</span> <span class="n">ExceptionHandlerFunction</span> <span class="o">{</span>
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">handleException</span><span class="o">(</span><span class="n">RequestContext</span> <span class="n">ctx</span><span class="o">,</span> <span class="n">HttpRequest</span> <span class="n">req</span><span class="o">,</span> <span class="n">Throwable</span> <span class="n">cause</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">cause</span> <span class="k">instanceof</span> <span class="n">MyServiceException</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="n">HttpResponse</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">HttpStatus</span><span class="o">.</span><span class="na">CONFLICT</span><span class="o">);</span>
+        <span class="o">}</span>
+
+        <span class="c1">// To the next exception handler.</span>
+        <span class="k">return</span> <span class="n">ExceptionHandlerFunction</span><span class="o">.</span><span class="na">fallthrough</span><span class="o">();</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>You can annotate at class level to catch an exception from every method in your service class.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="nd">@ExceptionHandler</span><span class="o">(</span><span class="n">MyExceptionHandler</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello</span><span class="o">()</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>You can also annotate at method level to catch an exception from a single method in your service class.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello&quot;</span><span class="o">)</span>
+    <span class="nd">@ExceptionHandler</span><span class="o">(</span><span class="n">MyExceptionHandler</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello</span><span class="o">()</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>If there is no exception handler which is able to handle an exception, the exception would be passed to
+the default exception handler. It handles <code class="docutils literal highlight highlight-default"><span></span><span class="n">IllegalArgumentException</span></code>, <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/HttpStatusException.html">HttpStatusException</a> and
+<a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/HttpResponseException.html">HttpResponseException</a> by default. <code class="docutils literal highlight highlight-default"><span></span><span class="n">IllegalArgumentException</span></code> would be converted into <code class="docutils literal highlight highlight-default"><span></span><span class="mi">400</span> <span class="n">Bad</span> <span class="n">Request</span></code>
+response, and the other two exceptions would be converted into a response with the status code which
+they are holding. For another exceptions, <code class="docutils literal highlight highlight-default"><span></span><span class="mi">500</span> <span class="n">Internal</span> <span class="n">Server</span> <span class="n">Error</span></code> would be sent to the client.</p>
+</div>
+<div class="section" id="conversion-between-an-http-message-and-a-java-object">
+<h2>Conversion between an HTTP message and a Java object<a class="headerlink" href="#conversion-between-an-http-message-and-a-java-object" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="converting-an-http-request-to-a-java-object">
+<h3>Converting an HTTP request to a Java object<a class="headerlink" href="#converting-an-http-request-to-a-java-object" title="Permalink to this headline">¶</a></h3>
+<p>In some cases like receiving a JSON document from a client, it may be useful to convert the document to
+a Java object automatically. Armeria provides <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/RequestConverter.html">&#64;RequestConverter</a> and <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/RequestObject.html">&#64;RequestObject</a> annotations
+so that such conversion can be done conveniently.
+You can write your own request converter by implementing <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/RequestConverterFunction.html">RequestConverterFunction</a> as follows.
+Similar to the exception handler, you can call <code class="docutils literal highlight highlight-default"><span></span><span class="n">RequestConverterFunction</span><span class="o">.</span><span class="n">fallthrough</span><span class="p">()</span></code> when your request
+converter is not able to convert the request.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyRequestConverter</span> <span class="kd">implements</span> <span class="n">RequestConverterFunction</span> <span class="o">{</span>
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="n">Object</span> <span class="nf">convertRequest</span><span class="o">(</span><span class="n">ServiceRequestContext</span> <span class="n">ctx</span><span class="o">,</span> <span class="n">AggregatedHttpMessage</span> <span class="n">request</span><span class="o">,</span>
+                                 <span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">expectedResultType</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">expectedResultType</span> <span class="o">==</span> <span class="n">MyObject</span><span class="o">.</span><span class="na">class</span><span class="o">)</span> <span class="o">{</span>
+            <span class="c1">// Convert the request to a Java object.</span>
+            <span class="k">return</span> <span class="k">new</span> <span class="n">MyObject</span><span class="o">(</span><span class="n">request</span><span class="o">.</span><span class="na">content</span><span class="o">());</span>
+        <span class="o">}</span>
+
+        <span class="c1">// To the next request converter.</span>
+        <span class="k">return</span> <span class="n">RequestConverterFunction</span><span class="o">.</span><span class="na">fallthrough</span><span class="o">();</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Then, you can write your service method as follows. Note that a request converter will work on the parameters
+which are annotated with <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/RequestObject.html">&#64;RequestObject</a>.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="nd">@RequestConverter</span><span class="o">(</span><span class="n">MyRequestConverter</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+
+    <span class="nd">@Post</span><span class="o">(</span><span class="s">&quot;/hello&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello</span><span class="o">(</span><span class="nd">@RequestObject</span> <span class="n">MyObject</span> <span class="n">myObject</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">// MyRequestConverter will be used to convert a request.</span>
+        <span class="c1">// ...</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Post</span><span class="o">(</span><span class="s">&quot;/hola&quot;</span><span class="o">)</span>
+    <span class="nd">@RequestConverter</span><span class="o">(</span><span class="n">MySpanishRequestConverter</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hola</span><span class="o">(</span><span class="nd">@RequestObject</span> <span class="n">MySpanishObject</span> <span class="n">myObject</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">// MySpanishRequestConverter will be tried to convert a request first.</span>
+        <span class="c1">// MyRequestConverter will be used if MySpanishRequestConverter fell through.</span>
+        <span class="c1">// ...</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Armeria also provides built-in request converters such as, <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/BeanRequestConverterFunction.html">BeanRequestConverterFunction</a> for Java Beans,
+<a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/JacksonRequestConverterFunction.html">JacksonRequestConverterFunction</a> for JSON documents, <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/StringRequestConverterFunction.html">StringRequestConverterFunction</a> for text contents
+and <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/ByteArrayRequestConverterFunction.html">ByteArrayRequestConverterFunction</a> for binary contents. They will be applied after your request converters
+by default, so you can use these built-in converters by just putting <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/RequestObject.html">&#64;RequestObject</a> annotation on the
+parameters which you want to convert.</p>
+<p>In some cases, <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/RequestObject.html">&#64;RequestObject</a> annotation may have a request converter as its value.
+Assume that you have a Java class named <code class="docutils literal highlight highlight-default"><span></span><span class="n">MyRequest</span></code> that it is usually able to be converted by
+<code class="docutils literal highlight highlight-default"><span></span><span class="n">MyDefaultRequestConverter</span></code>. But what if there is only one method which has a parameter of <code class="docutils literal highlight highlight-default"><span></span><span class="n">MyRequest</span></code>
+that you have to convert it differently? In this case, you may specify a request converter with
+<a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/RequestObject.html">&#64;RequestObject</a> annotation. In the example, <code class="docutils literal highlight highlight-default"><span></span><span class="n">MySpecialRequestConverter</span></code> will be used first for
+converting <code class="docutils literal highlight highlight-default"><span></span><span class="n">MyRequest</span></code>.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="nd">@RequestConverter</span><span class="o">(</span><span class="n">MyDefaultRequestConverter</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+    <span class="nd">@Post</span><span class="o">(</span><span class="s">&quot;/hello&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello</span><span class="o">(</span>
+        <span class="nd">@RequestObject</span><span class="o">(</span><span class="n">MySpecialRequestConverter</span><span class="o">.</span><span class="na">class</span><span class="o">)</span> <span class="n">MyRequest</span> <span class="n">myRequest</span><span class="o">)</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<div class="section" id="injecting-value-of-parameters-and-http-headers-into-a-java-object">
+<h4>Injecting value of parameters and HTTP headers into a Java object<a class="headerlink" href="#injecting-value-of-parameters-and-http-headers-into-a-java-object" title="Permalink to this headline">¶</a></h4>
+<p><a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/BeanRequestConverterFunction.html">BeanRequestConverterFunction</a> is a built-in request converter for Java object. You can use it by putting
+<a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/RequestObject.html">&#64;RequestObject</a> annotation on the parameters which you want to convert.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+    <span class="nd">@Post</span><span class="o">(</span><span class="s">&quot;/hello&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello</span><span class="o">(</span><span class="nd">@RequestObject</span> <span class="n">MyRequestObject</span> <span class="n">myRequestObject</span><span class="o">)</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Besides the annotated service class, you also need to create <code class="docutils literal highlight highlight-default"><span></span><span class="n">MyRequestObject</span></code> and put <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Param.html">&#64;Param</a> or
+<a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Header.html">&#64;Header</a> annotations on any of the following elements, to inject the path parameters, HTTP parameters
+or HTTP headers:</p>
+<ul class="simple">
+<li>Fields</li>
+<li>Constructors with only one parameter</li>
+<li>Methods with only one parameter</li>
+<li>Constructor parameters</li>
+<li>Method parameters</li>
+</ul>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyRequestObject</span> <span class="o">{</span>
+    <span class="nd">@Param</span><span class="o">(</span><span class="s">&quot;name&quot;</span><span class="o">)</span> <span class="c1">// This field will be injected by the value of parameter &quot;name&quot;.</span>
+    <span class="kd">private</span> <span class="n">String</span> <span class="n">name</span><span class="o">;</span>
+
+    <span class="nd">@Header</span><span class="o">(</span><span class="s">&quot;age&quot;</span><span class="o">)</span> <span class="c1">// This field will be injected by the value of HTTP header &quot;age&quot;.</span>
+    <span class="kd">private</span> <span class="kt">int</span> <span class="n">age</span><span class="o">;</span>
+
+    <span class="c1">// You can omit the value of @Param or @Header if you compiled your code with ``-parameters`` javac option.</span>
+    <span class="nd">@Param</span>         <span class="c1">// This field will be injected by the value of parameter &quot;gender&quot;.</span>
+    <span class="kd">private</span> <span class="n">String</span> <span class="n">gender</span><span class="o">;</span>
+
+    <span class="nd">@Header</span>        <span class="c1">// This field will be injected by the value of HTTP header &quot;accept-language&quot;.</span>
+    <span class="kd">private</span> <span class="n">String</span> <span class="n">acceptLanguage</span><span class="o">;</span>
+
+    <span class="nd">@Param</span><span class="o">(</span><span class="s">&quot;address&quot;</span><span class="o">)</span> <span class="c1">// You can annotate a single parameter method with @Param or @Header.</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">setAddress</span><span class="o">(</span><span class="n">String</span> <span class="n">address</span><span class="o">)</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+
+    <span class="nd">@Header</span><span class="o">(</span><span class="s">&quot;id&quot;</span><span class="o">)</span> <span class="c1">// You can annotate a single parameter constructor with @Param or @Header.</span>
+    <span class="kd">public</span> <span class="nf">MyRequestObject</span><span class="o">(</span><span class="kt">long</span> <span class="n">id</span><span class="o">)</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+
+    <span class="c1">// You can annotate all parameters of method or constructor with @Param or @Header.</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">init</span><span class="o">(</span><span class="nd">@Header</span><span class="o">(</span><span class="s">&quot;permissions&quot;</span><span class="o">)</span> <span class="n">String</span> <span class="n">permissions</span><span class="o">,</span> <span class="nd">@Param</span><span class="o">(</span><span class="s">&quot;client-id&quot;</span><span class="o">)</span> <span class="kt">int</span> <span class="n">clientId</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The usage of <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Param.html">&#64;Param</a> or <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Header.html">&#64;Header</a> annotations on Java object elements is much like using them on the
+parameters of service method.
+Please refer to <a class="reference internal" href="#parameter-injection"><span class="std std-ref">Parameter injection</span></a>, and <a class="reference internal" href="#header-injection"><span class="std std-ref">Getting an HTTP header</span></a> for more information.</p>
+</div>
+</div>
+<div class="section" id="converting-a-java-object-to-an-http-response">
+<h3>Converting a Java object to an HTTP response<a class="headerlink" href="#converting-a-java-object-to-an-http-response" title="Permalink to this headline">¶</a></h3>
+<p>Every object returned by an annotated service method can be converted to an HTTP response message by
+response converters, except for <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/common/HttpResponse.html">HttpResponse</a> and <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/common/AggregatedHttpMessage.html">AggregatedHttpMessage</a> which are already in a
+form of response message. You can also write your own response converter by implementing
+<a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/ResponseConverterFunction.html">ResponseConverterFunction</a> as follows. Also similar to <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/RequestConverterFunction.html">RequestConverterFunction</a>, you can call
+<code class="docutils literal highlight highlight-default"><span></span><span class="n">ResponseConverterFunction</span><span class="o">.</span><span class="n">fallthrough</span><span class="p">()</span></code> when your response converter is not able to convert the result
+to an <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/common/HttpResponse.html">HttpResponse</a>.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyResponseConverter</span> <span class="kd">implements</span> <span class="n">ResponseConverterFunction</span> <span class="o">{</span>
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">convertResponse</span><span class="o">(</span><span class="n">ServiceRequestContext</span> <span class="n">ctx</span><span class="o">,</span> <span class="n">Object</span> <span class="n">result</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">result</span> <span class="k">instanceof</span> <span class="n">MyObject</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="n">HttpResponse</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">HttpStatus</span><span class="o">.</span><span class="na">OK</span><span class="o">,</span>
+                                   <span class="n">MediaType</span><span class="o">.</span><span class="na">PLAIN_TEXT_UTF_8</span><span class="o">,</span>
+                                   <span class="s">&quot;Hello, %s!&quot;</span><span class="o">,</span> <span class="o">((</span><span class="n">MyObject</span><span class="o">)</span> <span class="n">result</span><span class="o">).</span><span class="na">processedName</span><span class="o">());</span>
+        <span class="o">}</span>
+
+        <span class="c1">// To the next response converter.</span>
+        <span class="k">return</span> <span class="n">ResponseConverterFunction</span><span class="o">.</span><span class="na">fallthrough</span><span class="o">();</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>You can annotate your service method and class as follows.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="nd">@ResponseConverter</span><span class="o">(</span><span class="n">MyResponseConverter</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+
+    <span class="nd">@Post</span><span class="o">(</span><span class="s">&quot;/hello&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">MyObject</span> <span class="nf">hello</span><span class="o">()</span> <span class="o">{</span>
+        <span class="c1">// MyResponseConverter will be used to make a response.</span>
+        <span class="c1">// ...</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Post</span><span class="o">(</span><span class="s">&quot;/hola&quot;</span><span class="o">)</span>
+    <span class="nd">@ResponseConverter</span><span class="o">(</span><span class="n">MySpanishResponseConverter</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">MyObject</span> <span class="nf">hola</span><span class="o">()</span> <span class="o">{</span>
+        <span class="c1">// MySpanishResponseConverter will be tried to convert MyObject to a response first.</span>
+        <span class="c1">// MyResponseConverter will be used if MySpanishResponseConverter fell through.</span>
+        <span class="c1">// ...</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Armeria supports <a class="reference internal" href="#media-type-nego"><span class="std std-ref">Media type negotiation</span></a>. So you may want to get a negotiated media type in order to set
+a <code class="docutils literal highlight highlight-default"><span></span><span class="n">Content</span><span class="o">-</span><span class="n">Type</span></code> header on your response. In this case, you can access it in your response converter
+as follows.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyResponseConverter</span> <span class="kd">implements</span> <span class="n">ResponseConverterFunction</span> <span class="o">{</span>
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">convertResponse</span><span class="o">(</span><span class="n">ServiceRequestContext</span> <span class="n">ctx</span><span class="o">,</span> <span class="n">Object</span> <span class="n">result</span><span class="o">)</span>  <span class="o">{</span>
+        <span class="n">MediaType</span> <span class="n">mediaType</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="na">negotiatedProduceType</span><span class="o">();</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">mediaType</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="c1">// Do something based on the media type.</span>
+            <span class="c1">// ...</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="using-serverbuilder-to-configure-converters-and-exception-handlers">
+<span id="configure-using-serverbuilder"></span><h2>Using <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/ServerBuilder.html">ServerBuilder</a> to configure converters and exception handlers<a class="headerlink" href="#using-serverbuilder-to-configure-converters-and-exception-handlers" title="Permalink to this headline">¶</a></h2>
+<p>You can specify converters and exception handlers using <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/ServerBuilder.html">ServerBuilder</a>, without using the annotations
+explained in the previous sections:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sb</span><span class="o">.</span><span class="n">annotatedService</span><span class="p">(</span><span class="n">new</span> <span class="n">MyAnnotatedService</span><span class="p">(),</span>
+                    <span class="n">new</span> <span class="n">MyExceptionHandler</span><span class="p">(),</span> <span class="n">new</span> <span class="n">MyRequestConverter</span><span class="p">(),</span> <span class="n">new</span> <span class="n">MyResponseConverter</span><span class="p">());</span>
+</pre></div>
+</div>
+<p>Also, they have a different method signature for conversion and exception handling so you can even write them
+in a single class and add it to your <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/ServerBuilder.html">ServerBuilder</a> at once, e.g.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAllInOneHandler</span> <span class="kd">implements</span> <span class="n">RequestConverterFunction</span><span class="o">,</span>
+                                          <span class="n">ResponseConverterFunction</span><span class="o">,</span>
+                                          <span class="n">ExceptionHandlerFunction</span> <span class="o">{</span>
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="n">Object</span> <span class="nf">convertRequest</span><span class="o">(</span><span class="n">ServiceRequestContext</span> <span class="n">ctx</span><span class="o">,</span> <span class="n">AggregatedHttpMessage</span> <span class="n">request</span><span class="o">,</span>
+                                 <span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">expectedResultType</span><span class="o">)</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">convertResponse</span><span class="o">(</span><span class="n">ServiceRequestContext</span> <span class="n">ctx</span><span class="o">,</span> <span class="n">Object</span> <span class="n">result</span><span class="o">)</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">handleException</span><span class="o">(</span><span class="n">RequestContext</span> <span class="n">ctx</span><span class="o">,</span> <span class="n">HttpRequest</span> <span class="n">req</span><span class="o">,</span>
+                                        <span class="n">Throwable</span> <span class="n">cause</span><span class="o">)</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">// ...</span>
+
+<span class="n">sb</span><span class="o">.</span><span class="na">annotatedService</span><span class="o">(</span><span class="k">new</span> <span class="n">MyAnnotatedService</span><span class="o">(),</span> <span class="k">new</span> <span class="n">MyAllInOneHandler</span><span class="o">());</span>
+</pre></div>
+</div>
+<p>When you specify exception handlers in a mixed manner like below, they will be evaluated in the following
+order commented. It is also the same as the evaluation order of the converters.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="nd">@ExceptionHandler</span><span class="o">(</span><span class="n">MyClassExceptionHandler3</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>           <span class="c1">// order 3</span>
+<span class="nd">@ExceptionHandler</span><span class="o">(</span><span class="n">MyClassExceptionHandler4</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>           <span class="c1">// order 4</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello&quot;</span><span class="o">)</span>
+    <span class="nd">@ExceptionHandler</span><span class="o">(</span><span class="n">MyMethodExceptionHandler1</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>      <span class="c1">// order 1</span>
+    <span class="nd">@ExceptionHandler</span><span class="o">(</span><span class="n">MyMethodExceptionHandler2</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>      <span class="c1">// order 2</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello</span><span class="o">()</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">// ...</span>
+
+<span class="n">sb</span><span class="o">.</span><span class="na">annotatedService</span><span class="o">(</span><span class="k">new</span> <span class="n">MyAnnotatedService</span><span class="o">(),</span>
+                    <span class="k">new</span> <span class="n">MyGlobalExceptionHandler5</span><span class="o">(),</span>        <span class="c1">// order 5</span>
+                    <span class="k">new</span> <span class="n">MyGlobalExceptionHandler6</span><span class="o">());</span>       <span class="c1">// order 6</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="decorating-an-annotated-service">
+<h2>Decorating an annotated service<a class="headerlink" href="#decorating-an-annotated-service" title="Permalink to this headline">¶</a></h2>
+<p>Every <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/Service.html">Service</a> can be wrapped by another <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/Service.html">Service</a> in Armeria (Refer to <a class="reference internal" href="server-decorator.html#server-decorator"><span class="std std-ref">Decorating a service</span></a> for more
+information). Simply, you can write your own decorator by implementing <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/DecoratingServiceFunction.html">DecoratingServiceFunction</a> interface
+as follows.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyDecorator</span> <span class="kd">implements</span> <span class="n">DecoratingServiceFunction</span><span class="o">&lt;</span><span class="n">HttpRequest</span><span class="o">,</span> <span class="n">HttpResponse</span><span class="o">&gt;</span> <span class="o">{</span>
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">serve</span><span class="o">(</span><span class="n">Service</span><span class="o">&lt;</span><span class="n">HttpRequest</span><span class="o">,</span> <span class="n">HttpResponse</span><span class="o">&gt;</span> <span class="n">delegate</span><span class="o">,</span>
+                              <span class="n">ServiceRequestContext</span> <span class="n">ctx</span><span class="o">,</span> <span class="n">HttpRequest</span> <span class="n">req</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">// ... Do something ...</span>
+        <span class="k">return</span> <span class="n">delegate</span><span class="o">.</span><span class="na">serve</span><span class="o">(</span><span class="n">ctx</span><span class="o">,</span> <span class="n">req</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Then, annotate your class or method with a <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Decorator.html">&#64;Decorator</a> annotation. In the following example, <code class="docutils literal highlight highlight-default"><span></span><span class="n">MyDecorator</span></code>
+will handle a request first, then <code class="docutils literal highlight highlight-default"><span></span><span class="n">AnotherDecorator</span></code> will handle the request next, and finally <code class="docutils literal highlight highlight-default"><span></span><span class="n">hello</span><span class="p">()</span></code>
+method will handle the request.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="nd">@Decorator</span><span class="o">(</span><span class="n">MyDecorator</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+    <span class="nd">@Decorator</span><span class="o">(</span><span class="n">AnotherDecorator</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello</span><span class="o">()</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<div class="section" id="decorating-an-annotated-service-with-a-custom-decorator-annotation">
+<h3>Decorating an annotated service with a custom decorator annotation<a class="headerlink" href="#decorating-an-annotated-service-with-a-custom-decorator-annotation" title="Permalink to this headline">¶</a></h3>
+<p>As you read earlier, you can write your own decorator with <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/DecoratingServiceFunction.html">DecoratingServiceFunction</a> interface. If your
+decorator does not require any parameter, that is fine. However, what if your decorator requires a parameter?
+In this case, you can create your own decorator annotation. Let’s see the following custom decorator
+annotation which applies <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/logging/LoggingService.html">LoggingService</a> to an annotated service.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This example is actually just a copy of what Armeria provides out of the box. In reality,
+you could just use <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/decorator/LoggingDecorator.html">&#64;LoggingDecorator</a>, without writing your own one.</p>
+</div>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="nd">@DecoratorFactory</span><span class="o">(</span><span class="n">LoggingDecoratorFactoryFunction</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+<span class="nd">@Retention</span><span class="o">(</span><span class="n">RetentionPolicy</span><span class="o">.</span><span class="na">RUNTIME</span><span class="o">)</span>
+<span class="nd">@Target</span><span class="o">({</span> <span class="n">ElementType</span><span class="o">.</span><span class="na">TYPE</span><span class="o">,</span> <span class="n">ElementType</span><span class="o">.</span><span class="na">METHOD</span> <span class="o">})</span>
+<span class="kd">public</span> <span class="nd">@interface</span> <span class="n">LoggingDecorator</span> <span class="o">{</span>
+
+    <span class="c1">// Specify parameters for your decorator like below.</span>
+    <span class="n">LogLevel</span> <span class="nf">requestLogLevel</span><span class="o">()</span> <span class="k">default</span> <span class="n">LogLevel</span><span class="o">.</span><span class="na">TRACE</span><span class="o">;</span>
+
+    <span class="n">LogLevel</span> <span class="nf">successfulResponseLogLevel</span><span class="o">()</span> <span class="k">default</span> <span class="n">LogLevel</span><span class="o">.</span><span class="na">TRACE</span><span class="o">;</span>
+
+    <span class="n">LogLevel</span> <span class="nf">failureResponseLogLevel</span><span class="o">()</span> <span class="k">default</span> <span class="n">LogLevel</span><span class="o">.</span><span class="na">WARN</span><span class="o">;</span>
+
+    <span class="kt">float</span> <span class="nf">samplingRate</span><span class="o">()</span> <span class="k">default</span> <span class="mf">1.0f</span><span class="o">;</span>
+
+    <span class="c1">// A special parameter in order to specify the order of a decorator.</span>
+    <span class="kt">int</span> <span class="nf">order</span><span class="o">()</span> <span class="k">default</span> <span class="mi">0</span><span class="o">;</span>
+<span class="o">}</span>
+
+<span class="kd">public</span> <span class="kd">final</span> <span class="kd">class</span> <span class="nc">LoggingDecoratorFactoryFunction</span> <span class="kd">implements</span> <span class="n">DecoratorFactoryFunction</span><span class="o">&lt;</span><span class="n">LoggingDecorator</span><span class="o">&gt;</span> <span class="o">{</span>
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="n">Function</span><span class="o">&lt;</span><span class="n">Service</span><span class="o">&lt;</span><span class="n">HttpRequest</span><span class="o">,</span> <span class="n">HttpResponse</span><span class="o">&gt;,</span>
+            <span class="o">?</span> <span class="kd">extends</span> <span class="n">Service</span><span class="o">&lt;</span><span class="n">HttpRequest</span><span class="o">,</span> <span class="n">HttpResponse</span><span class="o">&gt;&gt;</span> <span class="nf">newDecorator</span><span class="o">(</span><span class="n">LoggingDecorator</span> <span class="n">parameter</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="n">LoggingServiceBuilder</span><span class="o">()</span>
+                <span class="o">.</span><span class="na">requestLogLevel</span><span class="o">(</span><span class="n">parameter</span><span class="o">.</span><span class="na">requestLogLevel</span><span class="o">())</span>
+                <span class="o">.</span><span class="na">successfulResponseLogLevel</span><span class="o">(</span><span class="n">parameter</span><span class="o">.</span><span class="na">successfulResponseLogLevel</span><span class="o">())</span>
+                <span class="o">.</span><span class="na">failureResponseLogLevel</span><span class="o">(</span><span class="n">parameter</span><span class="o">.</span><span class="na">failureResponseLogLevel</span><span class="o">())</span>
+                <span class="o">.</span><span class="na">samplingRate</span><span class="o">(</span><span class="n">parameter</span><span class="o">.</span><span class="na">samplingRate</span><span class="o">())</span>
+                <span class="o">.</span><span class="na">newDecorator</span><span class="o">();</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>You can see <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/DecoratorFactory.html">&#64;DecoratorFactory</a> annotation at the first line of the example. It specifies a factory class
+which implements <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/DecoratorFactoryFunction.html">DecoratorFactoryFunction</a> interface. The factory will create an instance of <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/logging/LoggingService.html">LoggingService</a>
+with parameters which you specified on the class or method like below.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+    <span class="nd">@LoggingDecorator</span><span class="o">(</span><span class="n">requestLogLevel</span> <span class="o">=</span> <span class="n">LogLevel</span><span class="o">.</span><span class="na">INFO</span><span class="o">)</span>
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello1&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello1</span><span class="o">()</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+
+    <span class="nd">@LoggingDecorator</span><span class="o">(</span><span class="n">requestLogLevel</span> <span class="o">=</span> <span class="n">LogLevel</span><span class="o">.</span><span class="na">DEBUG</span><span class="o">,</span> <span class="n">samplingRate</span> <span class="o">=</span> <span class="mf">0.05</span><span class="o">)</span>
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello2&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello2</span><span class="o">()</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="evaluation-order-of-decorators">
+<h3>Evaluation order of decorators<a class="headerlink" href="#evaluation-order-of-decorators" title="Permalink to this headline">¶</a></h3>
+<p>Note that the evaluation order of the decorators is slightly different from that of the converters and exception
+handlers. As you read in <a class="reference internal" href="#configure-using-serverbuilder"><span class="std std-ref">Using ServerBuilder to configure converters and exception handlers</span></a>, both the converters and exception
+handlers are applied in the order of method-level ones, class-level ones and global ones. Unlike them,
+decorators are applied in the opposite order as follows, because it is more understandable for a user
+to apply from the outer decorators to the inner decorators, which means the order of global decorators,
+class-level decorators and method-level decorators.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="nd">@Decorator</span><span class="o">(</span><span class="n">MyClassDecorator2</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>                 <span class="c1">// order 2</span>
+<span class="nd">@Decorator</span><span class="o">(</span><span class="n">MyClassDecorator3</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>                 <span class="c1">// order 3</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello&quot;</span><span class="o">)</span>
+    <span class="nd">@Decorator</span><span class="o">(</span><span class="n">MyMethodDecorator4</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>            <span class="c1">// order 4</span>
+    <span class="nd">@Decorator</span><span class="o">(</span><span class="n">MyMethodDecorator5</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>            <span class="c1">// order 5</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello</span><span class="o">()</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">// ...</span>
+
+<span class="n">sb</span><span class="o">.</span><span class="na">annotatedService</span><span class="o">(</span><span class="k">new</span> <span class="n">MyAnnotatedService</span><span class="o">(),</span>
+                    <span class="k">new</span> <span class="n">MyGlobalDecorator1</span><span class="o">());</span>      <span class="c1">// order 1</span>
+</pre></div>
+</div>
+<p>The first rule is as explained before. However, if your own decorator annotations and <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Decorator.html">&#64;Decorator</a> annotations
+are specified in a mixed order like below, you need to clearly specify their order using <code class="docutils literal highlight highlight-default"><span></span><span class="n">order</span><span class="p">()</span></code> attribute
+of the annotation. In the following example, you cannot make sure in what order they decorate the service
+because Java collects repeatable annotations like <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Decorator.html">&#64;Decorator</a> into a single container annotation like
+<a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Decorators.html">&#64;Decorators</a> so it does not know the specified order between <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Decorator.html">&#64;Decorator</a> and <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/decorator/LoggingDecorator.html">&#64;LoggingDecorator</a>.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello&quot;</span><span class="o">)</span>
+    <span class="nd">@Decorator</span><span class="o">(</span><span class="n">MyMethodDecorator1</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+    <span class="nd">@LoggingDecorator</span>
+    <span class="nd">@Decorator</span><span class="o">(</span><span class="n">MyMethodDecorator2</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello</span><span class="o">()</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>To enforce the evaluation order of decorators, you can use <code class="docutils literal highlight highlight-default"><span></span><span class="n">order</span><span class="p">()</span></code> attribute. Lower the order value is,
+earlier the decorator will be executed. The default value of <code class="docutils literal highlight highlight-default"><span></span><span class="n">order</span><span class="p">()</span></code> attribute is <code class="docutils literal highlight highlight-default"><span></span><span class="mi">0</span></code>.
+The <code class="docutils literal highlight highlight-default"><span></span><span class="n">order</span><span class="p">()</span></code> attribute is applicable only to class-level and method-level decorators.</p>
+<p>With the following example, the <code class="docutils literal highlight highlight-default"><span></span><span class="n">hello</span><span class="p">()</span></code> will be executed with the following order:</p>
+<ol class="arabic simple">
+<li><code class="docutils literal highlight highlight-default"><span></span><span class="n">MyGlobalDecorator1</span></code></li>
+<li><code class="docutils literal highlight highlight-default"><span></span><span class="n">MyMethodDecorator1</span></code></li>
+<li><code class="docutils literal highlight highlight-default"><span></span><span class="n">LoggingDecorator</span></code></li>
+<li><code class="docutils literal highlight highlight-default"><span></span><span class="n">MyMethodDecorator2</span></code></li>
+<li><code class="docutils literal highlight highlight-default"><span></span><span class="n">MyAnnotatedService</span><span class="o">.</span><span class="n">hello</span><span class="p">()</span></code></li>
+</ol>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello&quot;</span><span class="o">)</span>
+    <span class="nd">@Decorator</span><span class="o">(</span><span class="n">value</span> <span class="o">=</span> <span class="n">MyMethodDecorator1</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">order</span> <span class="o">=</span> <span class="mi">1</span><span class="o">)</span>
+    <span class="nd">@LoggingDecorator</span><span class="o">(</span><span class="n">order</span> <span class="o">=</span> <span class="mi">2</span><span class="o">)</span>
+    <span class="nd">@Decorator</span><span class="o">(</span><span class="n">value</span> <span class="o">=</span> <span class="n">MyMethodDecorator2</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">order</span> <span class="o">=</span> <span class="mi">3</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello</span><span class="o">()</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">// Global-level decorators will not be affected by &#39;order&#39;.</span>
+<span class="n">sb</span><span class="o">.</span><span class="na">annotatedService</span><span class="o">(</span><span class="k">new</span> <span class="n">MyAnnotatedService</span><span class="o">(),</span>
+                    <span class="k">new</span> <span class="n">MyGlobalDecorator1</span><span class="o">());</span>
+</pre></div>
+</div>
+<p>Note that you can even make a method-level decorator executed before a class-level decorator
+by adjusting the <code class="docutils literal highlight highlight-default"><span></span><span class="n">order</span><span class="p">()</span></code> attribute:</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="nd">@LoggingDecorator</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+
+    <span class="c1">// LoggingDecorator -&gt; MyMethodDecorator1 -&gt; hello1()</span>
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello1&quot;</span><span class="o">)</span>
+    <span class="nd">@Decorator</span><span class="o">(</span><span class="n">MyMethodDecorator1</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello1</span><span class="o">()</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+
+    <span class="c1">// MyMethodDecorator1 -&gt; LoggingDecorator -&gt; hello2()</span>
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello2&quot;</span><span class="o">)</span>
+    <span class="nd">@Decorator</span><span class="o">(</span><span class="n">value</span> <span class="o">=</span> <span class="n">MyMethodDecorator1</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">order</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello2</span><span class="o">()</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>If you built a custom decorator annotation like <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/decorator/LoggingDecorator.html">&#64;LoggingDecorator</a>, it is recommended to
+add an <code class="docutils literal highlight highlight-default"><span></span><span class="n">order</span><span class="p">()</span></code> attribute so that the user of the custom annotation is able to adjust
+the order value of the decorator:</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="nd">@interface</span> <span class="n">MyDecoratorAnnotation</span> <span class="o">{</span>
+
+    <span class="c1">// Define your attributes.</span>
+    <span class="kt">int</span> <span class="nf">myAttr1</span><span class="o">();</span>
+
+    <span class="c1">// A special parameter in order to specify the order of a decorator.</span>
+    <span class="kt">int</span> <span class="nf">order</span><span class="o">()</span> <span class="k">default</span> <span class="mi">0</span><span class="o">;</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="media-type-negotiation">
+<span id="media-type-nego"></span><h2>Media type negotiation<a class="headerlink" href="#media-type-negotiation" title="Permalink to this headline">¶</a></h2>
+<p>Armeria provides <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/ProduceType.html">&#64;ProduceType</a> and <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/ConsumeType.html">&#64;ConsumeType</a> annotations to support media type negotiation. It is not
+necessary if you have only one service method for a path and an HTTP method. However, assume that you have
+multiple service methods for the same path and the same HTTP method as follows.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello1</span><span class="o">()</span> <span class="o">{</span>
+        <span class="c1">// Return a text document to the client.</span>
+        <span class="k">return</span> <span class="n">HttpResponse</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">HttpStatus</span><span class="o">.</span><span class="na">OK</span><span class="o">,</span> <span class="n">MediaType</span><span class="o">.</span><span class="na">PLAIN_TEXT_UTF_8</span><span class="o">,</span> <span class="s">&quot;Armeria&quot;</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">hello2</span><span class="o">()</span> <span class="o">{</span>
+        <span class="c1">// Return a JSON object to the client.</span>
+        <span class="k">return</span> <span class="n">HttpResponse</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">HttpStatus</span><span class="o">.</span><span class="na">OK</span><span class="o">,</span> <span class="n">MediaType</span><span class="o">.</span><span class="na">JSON_UTF_8</span><span class="o">,</span> <span class="s">&quot;{ \&quot;name\&quot;: \&quot;Armeria\&quot; }&quot;</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>If the media type is not specified on any methods bound to the same path pattern, the first method declared will
+be used and the other methods will be ignored. In this example, <code class="docutils literal highlight highlight-default"><span></span><span class="n">hello1</span><span class="p">()</span></code> will be chosen and the client
+will always receive a text document. What if you want to get a JSON object from the path <code class="docutils literal highlight highlight-default"><span></span><span class="o">/</span><span class="n">hello</span></code>?
+You can just specify the type of the content which your method produces as follows and add an <code class="docutils literal highlight highlight-default"><span></span><span class="n">Accept</span></code> header
+to your client request.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello&quot;</span><span class="o">)</span>
+    <span class="nd">@ProduceType</span><span class="o">(</span><span class="s">&quot;text/plain&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">helloText</span><span class="o">()</span> <span class="o">{</span>
+        <span class="c1">// Return a text document to the client.</span>
+        <span class="k">return</span> <span class="n">HttpResponse</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">HttpStatus</span><span class="o">.</span><span class="na">OK</span><span class="o">,</span> <span class="n">MediaType</span><span class="o">.</span><span class="na">PLAIN_TEXT_UTF_8</span><span class="o">,</span> <span class="s">&quot;Armeria&quot;</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello&quot;</span><span class="o">)</span>
+    <span class="nd">@ProduceType</span><span class="o">(</span><span class="s">&quot;application/json&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">helloJson</span><span class="o">()</span> <span class="o">{</span>
+        <span class="c1">// Return a JSON object to the client.</span>
+        <span class="k">return</span> <span class="n">HttpResponse</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">HttpStatus</span><span class="o">.</span><span class="na">OK</span><span class="o">,</span> <span class="n">MediaType</span><span class="o">.</span><span class="na">JSON_UTF_8</span><span class="o">,</span> <span class="s">&quot;{ \&quot;name\&quot;: \&quot;Armeria\&quot; }&quot;</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>A request like the following would get a text document:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">hello</span> <span class="n">HTTP</span><span class="o">/</span><span class="mf">1.1</span>
+<span class="n">Accept</span><span class="p">:</span> <span class="n">text</span><span class="o">/</span><span class="n">plain</span>
+</pre></div>
+</div>
+<p>A request like the following would get a JSON object:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">hello</span> <span class="n">HTTP</span><span class="o">/</span><span class="mf">1.1</span>
+<span class="n">Accept</span><span class="p">:</span> <span class="n">application</span><span class="o">/</span><span class="n">json</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Note that a <code class="docutils literal highlight highlight-default"><span></span><span class="n">Content</span><span class="o">-</span><span class="n">Type</span></code> header of a response is not automatically set. You may want to get the
+negotiated <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/ProduceType.html">&#64;ProduceType</a> from <code class="docutils literal highlight highlight-default"><span></span><span class="n">ServiceRequestContext</span><span class="o">.</span><span class="n">negotiatedProduceType</span><span class="p">()</span></code> method and set it
+as the value of the <code class="docutils literal highlight highlight-default"><span></span><span class="n">Content</span><span class="o">-</span><span class="n">Type</span></code> header of your response.</p>
+</div>
+<p>If a client sends a request without an <code class="docutils literal highlight highlight-default"><span></span><span class="n">Accept</span></code> header (or sending an <code class="docutils literal highlight highlight-default"><span></span><span class="n">Accept</span></code> header with an unsupported
+content type), it would be usually mapped to <code class="docutils literal highlight highlight-default"><span></span><span class="n">helloJson</span><span class="p">()</span></code> method because the methods are sorted by the
+name of the type in an alphabetical order.</p>
+<p>In this case, you can adjust the order of the methods with <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Order.html">&#64;Order</a> annotation. The default value of
+<a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/Order.html">&#64;Order</a> annotation is <code class="docutils literal highlight highlight-default"><span></span><span class="mi">0</span></code>. If you set the value less than <code class="docutils literal highlight highlight-default"><span></span><span class="mi">0</span></code>, the method is used earlier than the
+other methods, which means that it would be used as a default when there is no matched produce type.
+In this example, it would also make the same effect to annotate <code class="docutils literal highlight highlight-default"><span></span><span class="n">helloJson</span><span class="p">()</span></code> with <code class="docutils literal highlight highlight-default"><span></span><span class="nd">@Order</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></code>.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+
+    <span class="nd">@Order</span><span class="o">(-</span><span class="mi">1</span><span class="o">)</span>
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello&quot;</span><span class="o">)</span>
+    <span class="nd">@ProduceType</span><span class="o">(</span><span class="s">&quot;text/plain&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">helloText</span><span class="o">()</span> <span class="o">{</span>
+        <span class="c1">// Return a text document to the client.</span>
+        <span class="k">return</span> <span class="n">HttpResponse</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">HttpStatus</span><span class="o">.</span><span class="na">OK</span><span class="o">,</span> <span class="n">MediaType</span><span class="o">.</span><span class="na">PLAIN_TEXT_UTF_8</span><span class="o">,</span> <span class="s">&quot;Armeria&quot;</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Get</span><span class="o">(</span><span class="s">&quot;/hello&quot;</span><span class="o">)</span>
+    <span class="nd">@ProduceType</span><span class="o">(</span><span class="s">&quot;application/json&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">helloJson</span><span class="o">()</span> <span class="o">{</span>
+        <span class="c1">// Return a JSON object to the client.</span>
+        <span class="k">return</span> <span class="n">HttpResponse</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">HttpStatus</span><span class="o">.</span><span class="na">OK</span><span class="o">,</span> <span class="n">MediaType</span><span class="o">.</span><span class="na">JSON_UTF_8</span><span class="o">,</span> <span class="s">&quot;{ \&quot;name\&quot;: \&quot;Armeria\&quot; }&quot;</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Next, let’s learn how to handle a <code class="docutils literal highlight highlight-default"><span></span><span class="n">Content</span><span class="o">-</span><span class="n">Type</span></code> header of a request. Assume that there are two service
+methods that expect a text document and a JSON object as a content of a request, respectively.
+You can annotate them with <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/ConsumeType.html">&#64;ConsumeType</a> annotation.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+
+    <span class="nd">@Post</span><span class="o">(</span><span class="s">&quot;/hello&quot;</span><span class="o">)</span>
+    <span class="nd">@ConsumeType</span><span class="o">(</span><span class="s">&quot;text/plain&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">helloText</span><span class="o">(</span><span class="n">AggregatedHttpMessage</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">// Get a text content by calling message.content().toStringAscii().</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Post</span><span class="o">(</span><span class="s">&quot;/hello&quot;</span><span class="o">)</span>
+    <span class="nd">@ConsumeType</span><span class="o">(</span><span class="s">&quot;application/json&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">helloJson</span><span class="o">(</span><span class="n">AggregatedHttpMessage</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">// Get a JSON object by calling message.content().toStringUtf8().</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>A request like the following would be handled by <code class="docutils literal highlight highlight-default"><span></span><span class="n">helloText</span><span class="p">()</span></code> method:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">POST</span> <span class="o">/</span><span class="n">hello</span> <span class="n">HTTP</span><span class="o">/</span><span class="mf">1.1</span>
+<span class="n">Content</span><span class="o">-</span><span class="n">Type</span><span class="p">:</span> <span class="n">text</span><span class="o">/</span><span class="n">plain</span>
+<span class="n">Content</span><span class="o">-</span><span class="n">Length</span><span class="p">:</span> <span class="mi">7</span>
+
+<span class="n">Armeria</span>
+</pre></div>
+</div>
+<p>A request like the following would be handled by <code class="docutils literal highlight highlight-default"><span></span><span class="n">helloJson</span><span class="p">()</span></code> method:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">POST</span> <span class="o">/</span><span class="n">hello</span> <span class="n">HTTP</span><span class="o">/</span><span class="mf">1.1</span>
+<span class="n">Content</span><span class="o">-</span><span class="n">Type</span><span class="p">:</span> <span class="n">application</span><span class="o">/</span><span class="n">json</span>
+<span class="n">Content</span><span class="o">-</span><span class="n">Length</span><span class="p">:</span> <span class="mi">21</span>
+
+<span class="p">{</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Armeria&quot;</span> <span class="p">}</span>
+</pre></div>
+</div>
+<p>However, if a client sends a request with a <code class="docutils literal highlight highlight-default"><span></span><span class="n">Content</span><span class="o">-</span><span class="n">Type</span><span class="p">:</span> <span class="n">application</span><span class="o">/</span><span class="n">octet</span><span class="o">-</span><span class="n">stream</span></code> header which is not
+specified with <a class="reference external" href="apidocs/index.html?com/linecorp/armeria/server/annotation/ConsumeType.html">&#64;ConsumeType</a>, the client would get an HTTP status code of 415 which means
+<code class="docutils literal highlight highlight-default"><span></span><span class="n">Unsupported</span> <span class="n">Media</span> <span class="n">Type</span></code>. If you want to make one of the methods catch-all, you can remove the annotation
+as follows. <code class="docutils literal highlight highlight-default"><span></span><span class="n">helloCatchAll</span><span class="p">()</span></code> method would accept every request except for the request with a
+<code class="docutils literal highlight highlight-default"><span></span><span class="n">Content</span><span class="o">-</span><span class="n">Type</span><span class="p">:</span> <span class="n">application</span><span class="o">/</span><span class="n">json</span></code> header.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAnnotatedService</span> <span class="o">{</span>
+
+    <span class="nd">@Post</span><span class="o">(</span><span class="s">&quot;/hello&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">helloCatchAll</span><span class="o">(</span><span class="n">AggregatedHttpMessage</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">// Get a content by calling message.content() and handle it as a text document or something else.</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Post</span><span class="o">(</span><span class="s">&quot;/hello&quot;</span><span class="o">)</span>
+    <span class="nd">@ConsumeType</span><span class="o">(</span><span class="s">&quot;application/json&quot;</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="n">HttpResponse</span> <span class="nf">helloJson</span><span class="o">(</span><span class="n">AggregatedHttpMessage</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">// Get a JSON object by calling message.content().toStringUtf8().</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="server-http-file.html" class="btn btn-neutral float-right" title="Serving static files" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="server-docservice.html" class="btn btn-neutral" title="Browsing and invoking services with DocService" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015-2018, LINE Corporation.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.63.1',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>
+  <div class="github-fork-ribbon-wrapper right">
+    <div class="github-fork-ribbon">
+      <a href="https://github.com/line/armeria">Fork me at GitHub</a>
+    </div>
+  </div>
+  <script type="text/javascript" src="_static/add_badges.js"></script>
+   
+
+
+</body>
+</html>
